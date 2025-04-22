@@ -3,7 +3,7 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 import numpy as np
 import math
-from src import perlin     # Assumes `perlin.noise(x, y)` is defined here
+from src import perlin
 
 # Window and terrain parameters
 _width, _height = 800, 600
