@@ -19,47 +19,81 @@ Az `app.py` fájl az OpenGL alapú grafikus alkalmazás indító kódját tartal
 - **_angle_x, _angle_y**: A kamera szögének beállítása (45° és 30°).
 - **_distance**: A kamera távolsága a tereptől (100 egység).
 
-### Magasságtérkép Generálása
-A `generate_heightmap()` függvény a Perlin zajt használva generál egy 2D-es tömböt, amely a terep magasságát tárolja. A Perlin zaj `perlin.noise(nx, ny)` függvénnyel van kiszámítva, amely a térkép egyes pontjainak magasságát állítja be.
+#### `_generate_heightmap(_seed_x, _seed_y, _fade_a, _fade_b, _fade_c)`
+Magasságtérképet generál Perlin zaj segítségével.
 
-### Terep Megjelenítése
-A `_draw_terrain()` függvény felelős a terep megjelenítéséért, ahol a magasságok szerint kockák vannak felhalmozva. A kockák színei a magasság alapján sötétednek.
+- **Bemeneti paraméterek**:
+  - **`_seed_x`** *(int)*: Az x irányú gradiens generálásához használt seed szorzó.
+  - **`_seed_y`** *(int)*: Az y irányú gradiens generálásához használt seed szorzó.
+  - **`_fade_a`** *(int)*: A fade függvény `a` együtthatója.
+  - **`_fade_b`** *(int)*: A fade függvény `b` együtthatója.
+  - **`_fade_c`** *(int)*: A fade függvény `c` együtthatója.
+- **Visszatérési érték**: Egy 2D `numpy.ndarray`, amely a terep magasságait tartalmazza.
 
-### Kamera Kezelése
-A kamera az `gluLookAt()` függvénnyel van beállítva. A `_keyboard()` függvény lehetőséget biztosít arra, hogy a `w`, `a`, `s`, `d` billentyűkkel módosíthassuk a kamera szögét, lehetővé téve a körbeforgást.
+#### `_smooth_heightmap(heightmap)`
+Egyszerű átlagoló szűrőt alkalmaz a magasságtérképen a simább megjelenés érdekében.
 
-### OpenGL Inicializálás
-Az OpenGL beállítások az `_init()` függvényben találhatóak. A háttérszín az égkék (`glClearColor(0.5, 0.7, 1.0, 1.0)`).
+- **Bemeneti paraméterek**:
+  - **`heightmap`** *(numpy.ndarray)*: A magasságtérkép, amelyet simítani kell.
+- **Visszatérési érték**: Egy simított magasságtérkép (`numpy.ndarray`).
 
+#### `_draw_cube(x, y, z)`
+Egy kockát rajzol az adott koordinátákon.
 
-### Parancssori Argumentumok az `app.py`-ban
+- **Bemeneti paraméterek**:
+  - **`x`** *(float)*: A kocka x-koordinátája.
+  - **`y`** *(float)*: A kocka y-koordinátája.
+  - **`z`** *(float)*: A kocka z-koordinátája.
 
-Az `app.py` fájl lehetőséget biztosít arra, hogy a program indításakor parancssori argumentumokkal testre szabjuk a fade függvény együtthatóit és a seed szorzókat. Az alábbi argumentumok érhetők el:
+#### `_draw_terrain()`
+A magasságtérkép alapján megrajzolja a terepet kockákból.
 
-1. **`--fade-a`**
-   - **Típus**: `int`
-   - **Alapértelmezett érték**: `6`
-   - **Leírás**: A fade függvény `a` együtthatója, amely a fade görbe alakját befolyásolja.
+- **Leírás**: A magasságok szerint kockákat halmoz fel, és a magasság alapján árnyalja őket.
 
-2. **`--fade-b`**
-   - **Típus**: `int`
-   - **Alapértelmezett érték**: `15`
-   - **Leírás**: A fade függvény `b` együtthatója, amely a görbe további finomhangolására szolgál.
+#### `_init_lighting()`
+Inicializálja a világítást az OpenGL-ben.
 
-3. **`--fade-c`**
-   - **Típus**: `int`
-   - **Alapértelmezett érték**: `10`
-   - **Leírás**: A fade függvény `c` együtthatója, amely a görbe harmadik paramétere.
+- **Leírás**: Engedélyezi a világítást és beállítja az első fényforrást (pozíció, diffúz és spekuláris fény).
 
-4. **`--seed-x`**
-   - **Típus**: `int`
-   - **Alapértelmezett érték**: `20000`
-   - **Leírás**: Az x irányú gradiens generálásához használt seed szorzó. Ez biztosítja a determinisztikus zajgenerálást.
+#### `_apply_shading()`
+Simított árnyalást alkalmaz az objektumokra.
 
-5. **`--seed-y`**
-   - **Típus**: `int`
-   - **Alapértelmezett érték**: `50000`
-   - **Leírás**: Az y irányú gradiens generálásához használt seed szorzó. Ez is a determinisztikus zajgenerálást segíti.
+- **Leírás**: Beállítja az OpenGL árnyalási modelljét Phong árnyalásra (`GL_SMOOTH`).
+
+#### `_display()`
+A megjelenítésért felelős callback függvény.
+
+- **Leírás**: Törli a képernyőt, beállítja a kamerát, és megjeleníti a terepet.
+
+#### `_reshape(w, h)`
+Az ablak átméretezésekor hívódik meg.
+
+- **Bemeneti paraméterek**:
+  - **`w`** *(int)*: Az ablak új szélessége.
+  - **`h`** *(int)*: Az ablak új magassága.
+
+#### `_keyboard(key, x, y)`
+A billentyűzetes vezérlésért felelős callback függvény.
+
+- **Bemeneti paraméterek**:
+  - **`key`** *(bytes)*: A lenyomott billentyű.
+  - **`x`**, **`y`** *(int)*: Az egér pozíciója a lenyomáskor.
+
+#### `_init()`
+Inicializálja az OpenGL beállításokat.
+
+- **Leírás**: Engedélyezi a mélységi tesztet, beállítja a háttérszínt, és inicializálja a világítást és árnyalást.
+
+#### `main(fade_a, fade_b, fade_c, seed_x, seed_y)`
+A program belépési pontja.
+
+- **Bemeneti paraméterek**:
+  - **`fade_a`** *(int)*: A fade függvény `a` együtthatója.
+  - **`fade_b`** *(int)*: A fade függvény `b` együtthatója.
+  - **`fade_c`** *(int)*: A fade függvény `c` együtthatója.
+  - **`seed_x`** *(int)*: Az x irányú gradiens generálásához használt seed szorzó.
+  - **`seed_y`** *(int)*: Az y irányú gradiens generálásához használt seed szorzó.
+- **Leírás**: Inicializálja a magasságtérképet, alkalmazza a simítást, és elindítja az OpenGL fő ciklusát.
 
 ---
 
