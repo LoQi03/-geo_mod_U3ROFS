@@ -8,25 +8,25 @@ def _lerp(a, b, t):
     return a + t * (b - a)
 
 
-def _fade(t):
+def _fade(t, fade_a, fade_b, fade_c):
     """
     Fade function used to smooth the interpolation.
     Uses the classic Perlin fade curve: 6t^5 - 15t^4 + 10t^3.
     """
-    return t * t * t * (t * (t * 6 - 15) + 10)
+    return t * t * t * (t * (t * fade_a - fade_b) + fade_c)
 
 
-def _gradient(ix, iy):
+def _gradient(ix, iy, seed_x, seed_y):
     """
     Generates a pseudo-random gradient vector at integer coordinates.
     This vector is deterministic and based on seed.
     """
-    np.random.seed(ix * 20000 + iy * 50000)
+    np.random.seed(ix * seed_x + iy * seed_y)
     angle = np.random.rand() * 2 * np.pi
     return np.array([np.cos(angle), np.sin(angle)])
 
 
-def noise(x, y):
+def noise(x, y, seed_x, seed_y, fade_a, fade_b, fade_c):
     """
     2D Perlin noise function.
 
@@ -44,14 +44,14 @@ def noise(x, y):
     y1 = y0 + 1
 
     # Local coordinates within grid cell
-    sx = _fade(x - x0)
-    sy = _fade(y - y0)
+    sx = _fade(x - x0, fade_a, fade_b, fade_c)
+    sy = _fade(y - y0, fade_a, fade_b, fade_c)
 
     # Gradient vectors at grid points
-    g00 = _gradient(x0, y0)
-    g10 = _gradient(x1, y0)
-    g01 = _gradient(x0, y1)
-    g11 = _gradient(x1, y1)
+    g00 = _gradient(x0, y0, seed_x, seed_y)
+    g10 = _gradient(x1, y0, seed_x, seed_y)
+    g01 = _gradient(x0, y1, seed_x, seed_y)
+    g11 = _gradient(x1, y1, seed_x, seed_y)
 
     # Offsets from grid points
     d00 = np.array([x - x0, y - y0])
