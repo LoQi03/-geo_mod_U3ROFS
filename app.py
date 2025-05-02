@@ -28,10 +28,19 @@ def _generate_heightmap(_seed_x, _seed_y, _fade_a, _fade_b, _fade_c):
         for y in range(_terrain_size):
             nx = x / _scale
             ny = y / _scale
-            print(_seed_x, _seed_y, _fade_a, _fade_b, _fade_c)
             height_val = perlin.noise(nx, ny, _seed_x, _seed_y, _fade_a, _fade_b, _fade_c)
             heightmap[x][y] = int((height_val + 1) * 5)  
     return heightmap
+
+def _smooth_heightmap(heightmap):
+    """
+    Applies a simple average smoothing filter to the heightmap.
+    """
+    smoothed_map = heightmap.copy()
+    for x in range(1, _terrain_size - 1):
+        for y in range(1, _terrain_size - 1):
+            smoothed_map[x][y] = np.mean(heightmap[x-1:x+2, y-1:y+2])
+    return smoothed_map
 
 def _draw_cube(x, y, z):
     """
@@ -55,6 +64,22 @@ def _draw_terrain():
                 brightness = 1.0 - (z / max_height)  # Darker at higher levels
                 glColor3f(0.6 * brightness, 0.8 * brightness, 0.3 * brightness)
                 _draw_cube(x - _terrain_size // 2, z, y - _terrain_size // 2)
+
+def _init_lighting():
+    """
+    Initializes lighting and shading in the scene.
+    """
+    glEnable(GL_LIGHTING)
+    glEnable(GL_LIGHT0)  # Enable the first light
+    glLightfv(GL_LIGHT0, GL_POSITION, np.array([1.0, 1.0, 1.0, 0.0], dtype=np.float32))  # Light position
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, np.array([1.0, 1.0, 1.0, 1.0], dtype=np.float32))  # Diffuse light
+    glLightfv(GL_LIGHT0, GL_SPECULAR, np.array([1.0, 1.0, 1.0, 1.0], dtype=np.float32))  # Specular light
+
+def _apply_shading():
+    """
+    Applies smooth shading to objects.
+    """
+    glShadeModel(GL_SMOOTH)  # Phong shading
 
 def _display():
     """
@@ -103,6 +128,8 @@ def _init():
     """
     glEnable(GL_DEPTH_TEST)
     glClearColor(0.5, 0.7, 1.0, 1.0)  # Sky blue background
+    _init_lighting()
+    _apply_shading()
 
 def main(fade_a=6, fade_b=15, fade_c=10, seed_x=20000, seed_y=50000):
     """
@@ -117,6 +144,9 @@ def main(fade_a=6, fade_b=15, fade_c=10, seed_x=20000, seed_y=50000):
     
     global _heightmap
     _heightmap = _generate_heightmap(_seed_x, _seed_y, _fade_a, _fade_b, _fade_c)
+    
+    # Apply smoothing to the heightmap
+    _heightmap = _smooth_heightmap(_heightmap)
     
     print(f"Using fade coefficients: a={_fade_a}, b={_fade_b}, c={_fade_c}")
     print(f"Using seed multipliers: x={_seed_x}, y={_seed_y}")
